@@ -1,4 +1,4 @@
-package main
+package crawler
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ type Person struct {
 	friends  []*Person
 }
 
-func main() {
+func crawl() {
 	app := fb.New("#", "#")
 
 	session := app.Session("#")
