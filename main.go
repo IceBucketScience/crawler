@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -10,6 +11,10 @@ import (
 	"shared/config"
 	"shared/msg_queue"
 )
+
+type SuccessfulIndexMessage struct {
+	UserId string `json:"userId"`
+}
 
 func main() {
 	var configuration configVars.Configuration
@@ -22,11 +27,9 @@ func main() {
 	indexingJobQueue := msgQueue.CreateRecieverQueue("indexing_job_queue", configuration.BaseUrl, server)
 
 	indexingJobQueue.RegisterCallback("INDEX_REQUEST", func(payload map[string]interface{}) {
-		log.Println(payload)
+		time.Sleep(0 * time.Second)
 
-		indexingJobCompletionQueue.PushMessage("SUCCESS", struct {
-			Test string
-		}{Test: "derp"})
+		indexingJobCompletionQueue.PushMessage("SUCCESS", SuccessfulIndexMessage{UserId: payload["userId"].(string)})
 	})
 
 	log.Fatal(http.ListenAndServe(":"+configuration.Port, server))
