@@ -22,9 +22,14 @@ func main() {
 
 	server := mux.NewRouter()
 
-	indexingJobCompletionQueue := msgQueue.CreateDispatcherQueue("indexing_job_completion_queue")
+	indexingJobCompletionQueue, indexingJobCompletionQueueCreationErr := msgQueue.CreateDispatcherQueue("indexing_job_completion_queue")
+	indexingJobQueue, indexingJobQueueCreationErr := msgQueue.CreateRecieverQueue("indexing_job_queue", configuration.BaseUrl, server)
 
-	indexingJobQueue := msgQueue.CreateRecieverQueue("indexing_job_queue", configuration.BaseUrl, server)
+	if indexingJobQueueCreationErr != nil {
+		log.Panicln(indexingJobQueueCreationErr)
+	} else if indexingJobCompletionQueueCreationErr != nil {
+		log.Panicln(indexingJobCompletionQueueCreationErr)
+	}
 
 	indexingJobQueue.RegisterCallback("INDEX_REQUEST", func(payload map[string]interface{}) {
 		time.Sleep(0 * time.Second)
