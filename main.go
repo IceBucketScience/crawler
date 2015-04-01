@@ -3,18 +3,16 @@ package main
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 
 	"crawler/config_vars"
+	"crawler/index"
 	"shared/config"
+	"shared/facebook"
+	"shared/graph"
 	"shared/msg_queue"
 )
-
-type SuccessfulIndexMessage struct {
-	UserId string `json:"userId"`
-}
 
 func main() {
 	var configuration configVars.Configuration
@@ -22,6 +20,15 @@ func main() {
 
 	server := mux.NewRouter()
 
+	facebook.InitFbClient(configuration.FbAppId, configuration.FbAppSecret)
+	graph.InitGraph(configuration.DbUrl)
+
+	startIndexRequestHandler(server, &configuration)
+
+	log.Fatalln(http.ListenAndServe(":"+configuration.Port, server))
+}
+
+func startIndexRequestHandler(server *mux.Router, configuration *configVars.Configuration) {
 	indexingJobCompletionQueue, indexingJobCompletionQueueCreationErr := msgQueue.CreateDispatcherQueue("indexing_job_completion_queue")
 	indexingJobQueue, indexingJobQueueCreationErr := msgQueue.CreateRecieverQueue("indexing_job_queue", configuration.BaseUrl, server)
 
@@ -31,11 +38,29 @@ func main() {
 		log.Panicln(indexingJobCompletionQueueCreationErr)
 	}
 
-	indexingJobQueue.RegisterCallback("INDEX_REQUEST", func(payload map[string]interface{}) {
-		time.Sleep(0 * time.Second)
+	indexingJobQueue.RegisterCallback("INDEX_REQUEST", handleIndexRequest(indexingJobCompletionQueue))
+}
 
-		indexingJobCompletionQueue.PushMessage("SUCCESS", SuccessfulIndexMessage{UserId: payload["userId"].(string)})
-	})
+type SuccessfulIndexMessage struct {
+	UserId string `json:"userId"`
+}
 
-	log.Fatal(http.ListenAndServe(":"+configuration.Port, server))
+func handleIndexRequest(indexingJobCompletionQueue *msgQueue.DispatcherQueue) func(map[string]interface{}) {
+	return func(payload map[string]interface{}) {
+		var completionMessageType string
+		var completionMessagePayload interface{}
+
+		indexingErr := index.IndexVolunteer(payload["userId"].(string), payload["accessToken"].(string))
+		if indexingErr != nil {
+			completionMessageType = "FAILURE"
+		} else {
+			completionMessageType = "SUCCESS"
+			completionMessagePayload = SuccessfulIndexMessage{UserId: payload["userId"].(string)}
+		}
+
+		pushErr := indexingJobCompletionQueue.PushMessage(completionMessageType, completionMessagePayload)
+		if pushErr != nil {
+			log.Panicln(pushErr)
+		}
+	}
 }
