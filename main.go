@@ -45,6 +45,11 @@ type SuccessfulIndexMessage struct {
 	UserId string `json:"userId"`
 }
 
+type FailedIndexMessage struct {
+	UserId  string `json:"userId"`
+	Message string `json:"message"`
+}
+
 func handleIndexRequest(indexingJobCompletionQueue *msgQueue.DispatcherQueue) func(map[string]interface{}) {
 	return func(payload map[string]interface{}) {
 		var completionMessageType string
@@ -53,6 +58,8 @@ func handleIndexRequest(indexingJobCompletionQueue *msgQueue.DispatcherQueue) fu
 		indexingErr := index.IndexVolunteer(payload["userId"].(string), payload["accessToken"].(string))
 		if indexingErr != nil {
 			completionMessageType = "FAILURE"
+			completionMessagePayload = FailedIndexMessage{UserId: payload["userId"].(string), Message: indexingErr.Error()}
+			log.Panicln(indexingErr)
 		} else {
 			completionMessageType = "SUCCESS"
 			completionMessagePayload = SuccessfulIndexMessage{UserId: payload["userId"].(string)}

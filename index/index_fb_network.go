@@ -1,8 +1,6 @@
 package index
 
 import (
-	"log"
-
 	"shared/facebook"
 	"shared/graph"
 )
@@ -18,14 +16,17 @@ func indexFacebookNetwork(session *facebook.Session) error {
 		return createFriendNodesErr
 	}
 
-	log.Println(friendNodes)
+	friendNodes, linkNodesToNetworkErr := linkNewNodesToNetwork(friendNodes)
+	if linkNodesToNetworkErr != nil {
+		return linkNodesToNetworkErr
+	}
 
 	return nil
 }
 
-func createNodesForFriends(friends []*facebook.Person) ([]*graph.Person, error) {
+func createNodesForFriends(friends []*facebook.Person) (graph.Graph, error) {
 	createdNodeCh := make(chan *graph.Person)
-	createdNodes := []*graph.Person{}
+	createdNodes := map[string]*graph.Person{}
 
 	for _, friend := range friends {
 		go func(friend *facebook.Person) {
@@ -40,7 +41,7 @@ func createNodesForFriends(friends []*facebook.Person) ([]*graph.Person, error) 
 
 	for {
 		node := <-createdNodeCh
-		createdNodes = append(createdNodes, node)
+		createdNodes[node.FbId] = node
 
 		if len(createdNodes) == len(friends) {
 			return createdNodes, nil
@@ -59,10 +60,90 @@ func getExistingOrCreateNewPerson(userId string, name string) (*graph.Person, er
 		createdPerson, createErr := graph.CreatePerson(userId, name)
 		if createErr != nil {
 			return nil, createErr
-		} else {
-			return createdPerson, nil
 		}
+
+		return createdPerson, nil
 	}
 
 	return person, nil
+}
+
+func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
+	volunteers, getVolunteersErr := graph.GetVolunteers()
+	if getVolunteersErr != nil {
+		return nil, getVolunteersErr
+	}
+
+	visitedNodeCh := make(chan *graph.Person)
+	visitedNodes := []*graph.Person{}
+
+	for _, node := range newNodes {
+		for _, volunteer := range volunteers {
+			go func(node *graph.Person, volunteer *graph.Volunteer) {
+				linkErr := linkNodeToVolunteer(node, volunteer, newNodes)
+				if linkErr != nil {
+					//TODO: handle err
+				}
+
+				visitedNodeCh <- node
+			}(node, volunteer)
+		}
+	}
+
+	for {
+		node := <-visitedNodeCh
+		visitedNodes = append(visitedNodes, node)
+
+		if len(visitedNodes) == len(newNodes) {
+			return newNodes, nil
+		}
+	}
+}
+
+func linkNodeToVolunteer(node *graph.Person, volunteer *graph.Volunteer, g graph.Graph) error {
+	fbSession := facebook.CreateSession(volunteer.AccessToken)
+
+	friendshipAddedErr := addFriendshipIfFriends(node, volunteer, fbSession)
+	if friendshipAddedErr != nil {
+		return friendshipAddedErr
+	}
+
+	mutualFriendsErr := connectMutualFriends(node, g, fbSession)
+	if mutualFriendsErr != nil {
+		return mutualFriendsErr
+	}
+
+	return nil
+}
+
+func addFriendshipIfFriends(node *graph.Person, volunteer *graph.Volunteer, fbSession *facebook.Session) error {
+	if isFriends, checkFriendshipErr := fbSession.IsFriendsWith(node.FbId); checkFriendshipErr != nil {
+		return checkFriendshipErr
+	} else if isFriends {
+		addFriendshipErr := volunteer.AddFriendshipWith(node)
+		if addFriendshipErr != nil {
+			return checkFriendshipErr
+		}
+	}
+
+	return nil
+}
+
+func connectMutualFriends(node *graph.Person, g graph.Graph, fbSession *facebook.Session) error {
+	mutualFriends, mutualFriendsErr := fbSession.GetMutualFriendsWith(node.FbId)
+	if mutualFriendsErr != nil {
+		return mutualFriendsErr
+	}
+
+	for _, mutualFriend := range mutualFriends {
+		if _, nodeExists := g[mutualFriend.UserId]; nodeExists {
+			//g[mutualFriend.UserId] will be nil if mutualFriend happens to be one of the volunteers
+			addFriendshipErr := node.AddFriendshipWith(g[mutualFriend.UserId])
+			if addFriendshipErr != nil {
+				return addFriendshipErr
+			}
+		}
+	}
+
+	return nil
 }
