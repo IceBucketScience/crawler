@@ -1,6 +1,8 @@
 package index
 
 import (
+	"log"
+
 	"shared/facebook"
 	"shared/graph"
 )
@@ -13,6 +15,8 @@ func IndexVolunteer(userId string, accessToken string) error {
 		return sessionErr
 	}
 
+	log.Println("[INDEXING STARTED] ", userInfo.Name)
+
 	volunteer, volunteerErr := graph.CreateVolunteer(userId, userInfo.Name, accessToken)
 	if volunteerErr != nil {
 		return volunteerErr
@@ -24,6 +28,8 @@ func IndexVolunteer(userId string, accessToken string) error {
 	}
 
 	volunteer.MarkAsIndexed()
+
+	log.Println("[INDEXING COMPLETED] ", userInfo.Name)
 
 	return nil
 }

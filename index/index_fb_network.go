@@ -101,16 +101,25 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 }
 
 func linkNodeToVolunteer(node *graph.Person, volunteer *graph.Volunteer, g graph.Graph) error {
-	fbSession := facebook.CreateSession(volunteer.AccessToken)
+	if isLinked, linkCheckErr := node.IsLinkedTo(volunteer); linkCheckErr != nil {
+		return linkCheckErr
+	} else if !isLinked {
+		fbSession := facebook.CreateSession(volunteer.AccessToken)
 
-	friendshipAddedErr := addFriendshipIfFriends(node, volunteer, fbSession)
-	if friendshipAddedErr != nil {
-		return friendshipAddedErr
-	}
+		friendshipAddedErr := addFriendshipIfFriends(node, volunteer, fbSession)
+		if friendshipAddedErr != nil {
+			return friendshipAddedErr
+		}
 
-	mutualFriendsErr := connectMutualFriends(node, g, fbSession)
-	if mutualFriendsErr != nil {
-		return mutualFriendsErr
+		mutualFriendsErr := connectMutualFriends(node, g, fbSession)
+		if mutualFriendsErr != nil {
+			return mutualFriendsErr
+		}
+
+		markErr := node.MarkAsLinkedTo(volunteer)
+		if markErr != nil {
+			return markErr
+		}
 	}
 
 	return nil
@@ -120,7 +129,7 @@ func addFriendshipIfFriends(node *graph.Person, volunteer *graph.Volunteer, fbSe
 	if isFriends, checkFriendshipErr := fbSession.IsFriendsWith(node.FbId); checkFriendshipErr != nil {
 		return checkFriendshipErr
 	} else if isFriends {
-		addFriendshipErr := volunteer.AddFriendshipWith(node)
+		addFriendshipErr := volunteer.AddFriendshipWith(node.FbId)
 		if addFriendshipErr != nil {
 			return checkFriendshipErr
 		}
@@ -136,12 +145,9 @@ func connectMutualFriends(node *graph.Person, g graph.Graph, fbSession *facebook
 	}
 
 	for _, mutualFriend := range mutualFriends {
-		if _, nodeExists := g[mutualFriend.UserId]; nodeExists {
-			//g[mutualFriend.UserId] will be nil if mutualFriend happens to be one of the volunteers
-			addFriendshipErr := node.AddFriendshipWith(g[mutualFriend.UserId])
-			if addFriendshipErr != nil {
-				return addFriendshipErr
-			}
+		addFriendshipErr := node.AddFriendshipWith(mutualFriend.UserId)
+		if addFriendshipErr != nil {
+			return addFriendshipErr
 		}
 	}
 
