@@ -27,6 +27,11 @@ func IndexVolunteer(userId string, accessToken string) error {
 		return facebookIndexingErr
 	}
 
+	postIndexingErr := indexFacebookPosts(volunteer)
+	if postIndexingErr != nil {
+		return postIndexingErr
+	}
+
 	volunteer.MarkAsIndexed()
 
 	log.Println("[INDEXING COMPLETED] ", userInfo.Name)
