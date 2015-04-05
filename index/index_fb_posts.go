@@ -94,7 +94,8 @@ func indexPostsOf(person *graph.Person, session *facebook.Session) error {
 
 func isIceBucketChallengePost(postData *facebook.Post) bool {
 	message := strings.ToUpper(postData.Message)
-	keywords := []string{"ALS", " ICE ", "BUCKET", "CHALLENGE", "NOMINATION", "24"}
+	keywords := []string{
+		" ALS ", " ICE ", " CHALLENGE ", "ICEBUCKETCHALLENGE", "NOMINAT", "24 HOURS"}
 
 	for _, keyword := range keywords {
 		if strings.Contains(message, keyword) {
@@ -106,7 +107,6 @@ func isIceBucketChallengePost(postData *facebook.Post) bool {
 }
 
 func getExistingOrCreateNewPost(postData *facebook.Post) (*graph.Post, error) {
-	//TODO: deal with duplicate posts being indexed
 	post, err := graph.CreatePost(postData.Id, postData.Message, postData.CreatedTime)
 	if err != nil {
 		return nil, err
