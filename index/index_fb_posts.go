@@ -95,6 +95,7 @@ func indexPostsOf(person *graph.Person, session *facebook.Session) error {
 func isIceBucketChallengePost(postData *facebook.Post) bool {
 	message := strings.ToUpper(postData.Message)
 	keywords := []string{
+		//TODO: currently recognizes lots of posts about Ice Cream...
 		" ALS ", " ICE ", " CHALLENGE ", "ICEBUCKETCHALLENGE", "NOMINAT", "24 HOURS"}
 
 	for _, keyword := range keywords {
@@ -112,13 +113,13 @@ func getExistingOrCreateNewPost(postData *facebook.Post) (*graph.Post, error) {
 		return nil, err
 	}
 
-	addPosterErr := AddPosterToPost(postData.Poster.UserId, post)
+	addPosterErr := addPosterToPost(postData.Poster.UserId, post)
 	if addPosterErr != nil {
 		return nil, addPosterErr
 	}
 
 	if postData.Tagged != nil {
-		addTagsErr := AddTaggedToPost(postData.Tagged, post)
+		addTagsErr := addTaggedToPost(postData.Tagged, post)
 		if addTagsErr != nil {
 			return nil, addTagsErr
 		}
@@ -127,7 +128,7 @@ func getExistingOrCreateNewPost(postData *facebook.Post) (*graph.Post, error) {
 	return post, nil
 }
 
-func AddPosterToPost(posterId string, post *graph.Post) error {
+func addPosterToPost(posterId string, post *graph.Post) error {
 	poster, getPosterErr := graph.GetPerson(posterId)
 	if getPosterErr != nil {
 		return getPosterErr
@@ -143,14 +144,14 @@ func AddPosterToPost(posterId string, post *graph.Post) error {
 	return nil
 }
 
-func AddTaggedToPost(peopleToTag []*facebook.Person, post *graph.Post) error {
+func addTaggedToPost(peopleToTag []*facebook.Person, post *graph.Post) error {
 	taggedPeople := []*graph.Person{}
 	taggedPeopleCh := make(chan *graph.Person)
 	errCh := make(chan error)
 
 	for _, person := range peopleToTag {
 		go func(person *facebook.Person) {
-			tagged, err := AddTaggedPersonToPost(person.UserId, post)
+			tagged, err := addTaggedPersonToPost(person.UserId, post)
 			if err != nil {
 				errCh <- err
 			}
@@ -174,7 +175,7 @@ func AddTaggedToPost(peopleToTag []*facebook.Person, post *graph.Post) error {
 	return nil
 }
 
-func AddTaggedPersonToPost(taggedId string, post *graph.Post) (*graph.Person, error) {
+func addTaggedPersonToPost(taggedId string, post *graph.Post) (*graph.Person, error) {
 	tagged, getTaggedErr := graph.GetPerson(taggedId)
 	if getTaggedErr != nil {
 		return nil, getTaggedErr
