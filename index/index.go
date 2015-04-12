@@ -9,7 +9,7 @@ import (
 )
 
 func IndexVolunteer(userId string, accessToken string) error {
-	session := facebook.CreateSession(accessToken)
+	/*session := facebook.CreateSession(accessToken)
 
 	checkPermissionsErr := checkPermissions(session, userId)
 	if checkPermissionsErr != nil {
@@ -19,11 +19,13 @@ func IndexVolunteer(userId string, accessToken string) error {
 	userInfo, sessionErr := session.GetInfo()
 	if sessionErr != nil {
 		return sessionErr
-	}
+	}*/
 
-	log.Println("[INDEXING STARTED]", userInfo.Name)
+	name := /*userInfo.Name*/ "Brad Ross"
 
-	volunteer, volunteerErr := graph.CreateVolunteer(userId, userInfo.Name, accessToken)
+	log.Println("[INDEXING STARTED]", name)
+
+	volunteer, volunteerErr := graph.CreateVolunteer(userId, name, accessToken)
 	if volunteerErr != nil {
 		return volunteerErr
 	}
@@ -45,7 +47,7 @@ func IndexVolunteer(userId string, accessToken string) error {
 
 	volunteer.MarkAsIndexed()
 
-	log.Println("[INDEXING COMPLETED]", userInfo.Name)
+	log.Println("[INDEXING COMPLETED]", name)
 
 	return nil
 }
