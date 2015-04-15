@@ -9,7 +9,7 @@ import (
 )
 
 func IndexVolunteer(userId string, accessToken string) error {
-	/*session := facebook.CreateSession(accessToken)
+	session := facebook.CreateSession(accessToken)
 
 	checkPermissionsErr := checkPermissions(session, userId)
 	if checkPermissionsErr != nil {
@@ -19,9 +19,9 @@ func IndexVolunteer(userId string, accessToken string) error {
 	userInfo, sessionErr := session.GetInfo()
 	if sessionErr != nil {
 		return sessionErr
-	}*/
+	}
 
-	name := /*userInfo.Name*/ "Brad Ross"
+	name := userInfo.Name
 
 	log.Println("[INDEXING STARTED]", name)
 
@@ -30,7 +30,7 @@ func IndexVolunteer(userId string, accessToken string) error {
 		return volunteerErr
 	}
 
-	/*facebookIndexingErr := indexFacebookNetwork(session)
+	facebookIndexingErr := indexFacebookNetwork(session)
 	if facebookIndexingErr != nil {
 		return facebookIndexingErr
 	}
@@ -38,7 +38,7 @@ func IndexVolunteer(userId string, accessToken string) error {
 	postIndexingErr := indexFacebookPosts(volunteer)
 	if postIndexingErr != nil {
 		return postIndexingErr
-	}*/
+	}
 
 	iceBucketMappingErr := mapIceBucketChallenge(volunteer)
 	if iceBucketMappingErr != nil {

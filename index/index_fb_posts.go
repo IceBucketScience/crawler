@@ -93,13 +93,21 @@ func indexPostsOf(person *graph.Person, session *facebook.Session) error {
 }
 
 func isIceBucketChallengePost(postData *facebook.Post) bool {
-	message := strings.ToUpper(postData.Message)
+	if strings.Contains(postData.Message, "ALS") {
+		return true
+	}
+
+	normalizedMessage := strings.ToUpper(postData.Message)
 	keywords := []string{
-		//TODO: currently recognizes lots of posts about Ice Cream...
-		" ALS ", " ICE ", " CHALLENGE ", "ICEBUCKETCHALLENGE", "NOMINAT", "24 HOURS"}
+		"#STRIKEOUTALS",
+		"ICE WATER CHALLENGE",
+		"ICE BUCKET CHALLENGE",
+		"ICEBUCKETCHALLENGE",
+		"NOMINAT",
+		"24 HOURS"}
 
 	for _, keyword := range keywords {
-		if strings.Contains(message, keyword) {
+		if strings.Contains(normalizedMessage, keyword) {
 			return true
 		}
 	}

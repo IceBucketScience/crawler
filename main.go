@@ -35,7 +35,7 @@ func startIndexRequestHandler(server *mux.Router, configuration *configVars.Conf
 	if indexingJobQueueCreationErr != nil {
 		log.Panicln(indexingJobQueueCreationErr)
 	} else if indexingJobCompletionQueueCreationErr != nil {
-		//log.Panicln(indexingJobCompletionQueueCreationErr)
+		log.Panicln(indexingJobCompletionQueueCreationErr)
 	}
 
 	indexingJobQueue.RegisterCallback("INDEX_REQUEST", handleIndexRequest(indexingJobCompletionQueue))
@@ -65,9 +65,9 @@ func handleIndexRequest(indexingJobCompletionQueue *msgQueue.DispatcherQueue) fu
 			completionMessagePayload = SuccessfulIndexMessage{UserId: payload["userId"].(string)}
 		}
 		log.Println(completionMessageType, completionMessagePayload)
-		/*pushErr := indexingJobCompletionQueue.PushMessage(completionMessageType, completionMessagePayload)
+		pushErr := indexingJobCompletionQueue.PushMessage(completionMessageType, completionMessagePayload)
 		if pushErr != nil {
 			log.Println(pushErr)
-		}*/
+		}
 	}
 }
