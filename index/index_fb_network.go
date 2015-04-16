@@ -27,26 +27,33 @@ func indexFacebookNetwork(session *facebook.Session) error {
 func createNodesForFriends(friends []*facebook.Person) (graph.Graph, error) {
 	createdNodeCh := make(chan *graph.Person)
 	createdNodes := map[string]*graph.Person{}
+	errCh := make(chan error)
 
 	for _, friend := range friends {
 		go func(friend *facebook.Person) {
 			person, err := getExistingOrCreateNewPerson(friend.UserId, friend.Name)
 			if err != nil {
-				//TODO: handle err
+				errCh <- err
 			}
 
 			createdNodeCh <- person
 		}(friend)
 	}
 
-	for {
-		node := <-createdNodeCh
-		createdNodes[node.FbId] = node
+	for len(friends) > 0 {
+		select {
+		case node := <-createdNodeCh:
+			createdNodes[node.FbId] = node
+		case err := <-errCh:
+			return nil, err
+		}
 
 		if len(createdNodes) == len(friends) {
-			return createdNodes, nil
+			break
 		}
 	}
+
+	return createdNodes, nil
 }
 
 func getExistingOrCreateNewPerson(userId string, name string) (*graph.Person, error) {
