@@ -83,13 +83,14 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 
 	visitedNodeCh := make(chan *graph.Person)
 	visitedNodes := []*graph.Person{}
+	errCh := make(chan error)
 
 	for _, node := range newNodes {
 		for _, volunteer := range volunteers {
 			go func(node *graph.Person, volunteer *graph.Volunteer) {
 				linkErr := linkNodeToVolunteer(node, volunteer, newNodes)
 				if linkErr != nil {
-					//TODO: handle err
+					errCh <- linkErr
 				}
 
 				visitedNodeCh <- node
@@ -97,14 +98,19 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 		}
 	}
 
-	for {
-		node := <-visitedNodeCh
-		visitedNodes = append(visitedNodes, node)
-
+	for len(newNodes) > 0 {
+		select {
+		case node := <-visitedNodeCh:
+			visitedNodes = append(visitedNodes, node)
+		case err := <-errCh:
+			return nil, err
+		}
 		if len(visitedNodes) == len(newNodes) {
-			return newNodes, nil
+			break
 		}
 	}
+
+	return newNodes, nil
 }
 
 func linkNodeToVolunteer(node *graph.Person, volunteer *graph.Volunteer, g graph.Graph) error {
