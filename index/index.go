@@ -30,20 +30,28 @@ func IndexVolunteer(userId string, accessToken string) error {
 		return volunteerErr
 	}
 
+	log.Println("[VOLUNTEER CREATED]", name)
+
 	facebookIndexingErr := indexFacebookNetwork(session)
 	if facebookIndexingErr != nil {
 		return facebookIndexingErr
 	}
+
+	log.Println("[NETWORK INDEXED]", name)
 
 	postIndexingErr := indexFacebookPosts(volunteer)
 	if postIndexingErr != nil {
 		return postIndexingErr
 	}
 
+	log.Println("[POSTS INDEXED]", name)
+
 	iceBucketMappingErr := mapIceBucketChallenge(volunteer)
 	if iceBucketMappingErr != nil {
 		return iceBucketMappingErr
 	}
+
+	log.Println("[CHALLENGE MAPPED]", name)
 
 	volunteer.MarkAsIndexed()
 
