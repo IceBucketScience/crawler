@@ -1,0 +1,79 @@
+{
+	"ImportPath": "crawler",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/bmizerany/assert",
+			"Comment": "release.r60-6-ge17e998",
+			"Rev": "e17e99893cb6509f428e1728281c2ad60a6b31e3"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "8096f47503459bcc74d1f4c487b7e6e42e5746b5"
+		},
+		{
+			"ImportPath": "github.com/huandu/facebook",
+			"Comment": "v1.4.0-3-g4fc61f6",
+			"Rev": "4fc61f69f5142a90e2db5307bbad6772d71f071e"
+		},
+		{
+			"ImportPath": "github.com/iron-io/iron_go/api",
+			"Rev": "8d5ea7380ea1a94626e6a1d22fa81fc0329081db"
+		},
+		{
+			"ImportPath": "github.com/iron-io/iron_go/config",
+			"Rev": "8d5ea7380ea1a94626e6a1d22fa81fc0329081db"
+		},
+		{
+			"ImportPath": "github.com/iron-io/iron_go/mq",
+			"Rev": "8d5ea7380ea1a94626e6a1d22fa81fc0329081db"
+		},
+		{
+			"ImportPath": "github.com/jmcvetta/napping",
+			"Comment": "v1",
+			"Rev": "2d97c78f6d03e78ba167e2a252e578014c7769f9"
+		},
+		{
+			"ImportPath": "github.com/jmcvetta/neoism",
+			"Rev": "330a91a70986f78993808c0af39887caec772642"
+		},
+		{
+			"ImportPath": "github.com/jmcvetta/randutil",
+			"Rev": "8c8db8477594beda2db3cb1e840a0e3e60ff2739"
+		},
+		{
+			"ImportPath": "github.com/kelseyhightower/envconfig",
+			"Comment": "v1.0.0-6-ge904934",
+			"Rev": "e9049346b6aae8e6ad500c5a4519ad029439d660"
+		},
+		{
+			"ImportPath": "github.com/kr/pretty",
+			"Comment": "go.weekly.2011-12-22-26-gcb0850c",
+			"Rev": "cb0850c1681cbca3233e84f7e6ec3e4c3f352085"
+		},
+		{
+			"ImportPath": "github.com/kr/text",
+			"Rev": "6807e777504f54ad073ecef66747de158294b639"
+		},
+		{
+			"ImportPath": "shared/config",
+			"Rev": "bfe0a04f20e3d0d57a5a48b6a703986a25f1a212"
+		},
+		{
+			"ImportPath": "shared/facebook",
+			"Rev": "bfe0a04f20e3d0d57a5a48b6a703986a25f1a212"
+		},
+		{
+			"ImportPath": "shared/graph",
+			"Rev": "bfe0a04f20e3d0d57a5a48b6a703986a25f1a212"
+		},
+		{
+			"ImportPath": "shared/msg_queue",
+			"Rev": "bfe0a04f20e3d0d57a5a48b6a703986a25f1a212"
+		}
+	]
+}
