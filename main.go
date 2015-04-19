@@ -55,16 +55,23 @@ func handleIndexRequest(indexingJobCompletionQueue *msgQueue.DispatcherQueue) fu
 		var completionMessageType string
 		var completionMessagePayload interface{}
 
-		indexingErr := index.IndexVolunteer(payload["userId"].(string), payload["accessToken"].(string))
+		volunteer, indexingErr := index.IndexVolunteer(payload["userId"].(string), payload["accessToken"].(string))
 		if indexingErr != nil {
 			completionMessageType = "FAILURE"
 			completionMessagePayload = FailedIndexMessage{UserId: payload["userId"].(string), Message: indexingErr.Error()}
 			log.Println(indexingErr)
+
+			if volunteer != nil {
+				addErrErr := volunteer.AddErr(indexingErr.Error())
+				if addErrErr != nil {
+					log.Println(addErrErr)
+				}
+			}
 		} else {
 			completionMessageType = "SUCCESS"
 			completionMessagePayload = SuccessfulIndexMessage{UserId: payload["userId"].(string)}
 		}
-		log.Println(completionMessageType, completionMessagePayload)
+
 		pushErr := indexingJobCompletionQueue.PushMessage(completionMessageType, completionMessagePayload)
 		if pushErr != nil {
 			log.Println(pushErr)

@@ -8,17 +8,17 @@ import (
 	"shared/graph"
 )
 
-func IndexVolunteer(userId string, accessToken string) error {
+func IndexVolunteer(userId string, accessToken string) (*graph.Volunteer, error) {
 	session := facebook.CreateSession(accessToken)
 
 	checkPermissionsErr := checkPermissions(session, userId)
 	if checkPermissionsErr != nil {
-		return checkPermissionsErr
+		return nil, checkPermissionsErr
 	}
 
 	userInfo, sessionErr := session.GetInfo()
 	if sessionErr != nil {
-		return sessionErr
+		return nil, sessionErr
 	}
 
 	name := userInfo.Name
@@ -27,28 +27,28 @@ func IndexVolunteer(userId string, accessToken string) error {
 
 	volunteer, volunteerErr := graph.CreateVolunteer(userId, name, accessToken)
 	if volunteerErr != nil {
-		return volunteerErr
+		return volunteer, volunteerErr
 	}
 
 	log.Println("[VOLUNTEER CREATED]", name)
 
 	facebookIndexingErr := indexFacebookNetwork(session)
 	if facebookIndexingErr != nil {
-		return facebookIndexingErr
+		return volunteer, facebookIndexingErr
 	}
 
 	log.Println("[NETWORK INDEXED]", name)
 
 	postIndexingErr := indexFacebookPosts(volunteer)
 	if postIndexingErr != nil {
-		return postIndexingErr
+		return volunteer, postIndexingErr
 	}
 
 	log.Println("[POSTS INDEXED]", name)
 
 	iceBucketMappingErr := mapIceBucketChallenge(volunteer)
 	if iceBucketMappingErr != nil {
-		return iceBucketMappingErr
+		return volunteer, iceBucketMappingErr
 	}
 
 	log.Println("[CHALLENGE MAPPED]", name)
@@ -57,7 +57,7 @@ func IndexVolunteer(userId string, accessToken string) error {
 
 	log.Println("[INDEXING COMPLETED]", name)
 
-	return nil
+	return volunteer, nil
 }
 
 func checkPermissions(session *facebook.Session, userId string) error {
