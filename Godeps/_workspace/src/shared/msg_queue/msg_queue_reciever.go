@@ -18,10 +18,11 @@ type RecieverQueue struct {
 	IronQueue         *mq.Queue
 	LargestCallbackId int
 	Callbacks         map[string]map[string]callbackFunc
+	OnceCallbacks     map[string]bool
 }
 
 func CreateRecieverQueue(name string, baseUrl string, server *mux.Router) (*RecieverQueue, error) {
-	callbacks := make(map[string]map[string]callbackFunc)
+	callbacks := map[string]map[string]callbackFunc{}
 	ironQueue := mq.New(name)
 
 	_, err := ironQueue.Info()
@@ -31,7 +32,7 @@ func CreateRecieverQueue(name string, baseUrl string, server *mux.Router) (*Reci
 
 	ironQueue.AddSubscribers(baseUrl + "/queues/" + name)
 
-	queue := RecieverQueue{Name: name, IronQueue: ironQueue, LargestCallbackId: 0, Callbacks: callbacks}
+	queue := RecieverQueue{Name: name, IronQueue: ironQueue, LargestCallbackId: 0, Callbacks: callbacks, OnceCallbacks: map[string]bool{}}
 	server.HandleFunc("/queues/"+name, queue.recieveMessage).Methods("POST")
 
 	return &queue, nil
@@ -63,6 +64,11 @@ func (queue *RecieverQueue) UnregisterCallback(callbackId string) error {
 	return nil
 }
 
+func (queue *RecieverQueue) RegisterOnce(msgType string, callback callbackFunc) {
+	callbackId := queue.RegisterCallback(msgType, callback)
+	queue.OnceCallbacks[callbackId] = true
+}
+
 func (queue *RecieverQueue) recieveMessage(rw http.ResponseWriter, req *http.Request) {
 	var message Message
 	err := json.NewDecoder(req.Body).Decode(&message)
@@ -76,8 +82,15 @@ func (queue *RecieverQueue) recieveMessage(rw http.ResponseWriter, req *http.Req
 		return
 	}
 
-	for _, callback := range queue.Callbacks[message.Type] {
-		go callback(message.Payload.(map[string]interface{}))
+	for callbackId, callback := range queue.Callbacks[message.Type] {
+		go func(callbackId string, callback callbackFunc) {
+			callback(message.Payload.(map[string]interface{}))
+
+			if _, onceCallbackExists := queue.OnceCallbacks[callbackId]; onceCallbackExists {
+				queue.UnregisterCallback(callbackId)
+				delete(queue.OnceCallbacks, callbackId)
+			}
+		}(callbackId, callback)
 	}
 
 	rw.WriteHeader(200)
