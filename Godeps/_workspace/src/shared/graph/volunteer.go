@@ -1,8 +1,6 @@
 package graph
 
 import (
-	"errors"
-
 	"github.com/jmcvetta/neoism"
 )
 
@@ -11,7 +9,7 @@ type Volunteer struct {
 
 	AccessToken string
 	IsIndexed   bool
-	IndexingErr error
+	IndexingErr string
 }
 
 func CreateVolunteer(userId string, name string, accessToken string) (*Volunteer, error) {
@@ -39,13 +37,13 @@ func CreateVolunteer(userId string, name string, accessToken string) (*Volunteer
 
 	props["accessToken"] = accessToken
 	props["isIndexed"] = false
-	props["indexingErr"] = nil
+	props["indexingErr"] = ""
 	node.SetProperties(props)
 	//End temporary code
 
 	node.AddLabel("Volunteer")
 
-	return &Volunteer{Person: *person, AccessToken: accessToken, IsIndexed: false, IndexingErr: nil}, nil
+	return &Volunteer{Person: *person, AccessToken: accessToken, IsIndexed: false, IndexingErr: ""}, nil
 }
 
 func getVolunteerFromNode(node *neoism.Node) (*Volunteer, error) {
@@ -63,7 +61,7 @@ func getVolunteerFromNode(node *neoism.Node) (*Volunteer, error) {
 		Person:      *person,
 		AccessToken: props["accessToken"].(string),
 		IsIndexed:   props["isIndexed"].(bool),
-		IndexingErr: errors.New(props["indexingErr"].(string)),
+		IndexingErr: props["indexingErr"].(string),
 	}, nil
 }
 
@@ -85,18 +83,18 @@ func (volunteer *Volunteer) AddErr(err string) error {
 		return setErrErr
 	}
 
-	volunteer.IndexingErr = errors.New(err)
+	volunteer.IndexingErr = err
 
 	return nil
 }
 
 func (volunteer *Volunteer) RemoveErr() error {
-	removeErrErr := volunteer.node.DeleteProperty("indexingErr")
+	removeErrErr := volunteer.node.SetProperty("indexingErr", "")
 	if removeErrErr != nil {
 		return removeErrErr
 	}
 
-	volunteer.IndexingErr = nil
+	volunteer.IndexingErr = ""
 
 	return nil
 }
