@@ -1,6 +1,8 @@
 package index
 
 import (
+	"log"
+
 	"shared/facebook"
 	"shared/graph"
 )
@@ -11,10 +13,14 @@ func indexFacebookNetwork(session *facebook.Session) error {
 		return getFriendsErr
 	}
 
+	log.Println("FRIENDS RETRIEVED")
+
 	friendNodes, createFriendNodesErr := createNodesForFriends(friends)
 	if createFriendNodesErr != nil {
 		return createFriendNodesErr
 	}
+
+	log.Println("FRIENDS SAVED")
 
 	friendNodes, linkNodesToNetworkErr := linkNewNodesToNetwork(friendNodes)
 	if linkNodesToNetworkErr != nil {
@@ -25,24 +31,25 @@ func indexFacebookNetwork(session *facebook.Session) error {
 }
 
 func createNodesForFriends(friends []*facebook.Person) (graph.Graph, error) {
-	createdNodeCh := make(chan *graph.Person)
+	createdNodeCh := make(chan *graph.Person, len(friends))
 	createdNodes := map[string]*graph.Person{}
-	errCh := make(chan error)
+	errCh := make(chan error, 1)
 
 	for _, friend := range friends {
-		go func(friend *facebook.Person) {
-			person, err := getExistingOrCreateNewPerson(friend.UserId, friend.Name)
-			if err != nil {
-				errCh <- err
-			}
+		//go func(friend *facebook.Person) {
+		person, err := getExistingOrCreateNewPerson(friend.UserId, friend.Name)
+		if err != nil {
+			errCh <- err
+		}
 
-			createdNodeCh <- person
-		}(friend)
+		createdNodeCh <- person
+		//}(friend)
 	}
 
 	for len(friends) > 0 {
 		select {
 		case node := <-createdNodeCh:
+			log.Println(node.Name)
 			createdNodes[node.FbId] = node
 		case err := <-errCh:
 			return nil, err

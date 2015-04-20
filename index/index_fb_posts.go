@@ -104,7 +104,9 @@ func isIceBucketChallengePost(postData *facebook.Post) bool {
 		"ICE BUCKET CHALLENGE",
 		"ICEBUCKETCHALLENGE",
 		"NOMINAT",
-		"24 HOURS"}
+		"CHALLENGE",
+		"24 HOURS",
+	}
 
 	for _, keyword := range keywords {
 		if strings.Contains(normalizedMessage, keyword) {
