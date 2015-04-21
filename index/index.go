@@ -8,6 +8,12 @@ import (
 	"shared/graph"
 )
 
+var maxConcurrentDbRequests int
+
+func InitIndexer(maxConcDbRequests int) {
+	maxConcurrentDbRequests = maxConcDbRequests
+}
+
 func IndexVolunteer(userId string, accessToken string) (*graph.Volunteer, error) {
 	session := facebook.CreateSession(accessToken)
 

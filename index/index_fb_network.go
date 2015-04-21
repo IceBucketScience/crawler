@@ -87,21 +87,27 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 		return nil, getVolunteersErr
 	}
 
-	visitedNodeCh := make(chan *graph.Person, len(newNodes))
+	visitedNodeCh := make(chan *graph.Person, len(newNodes)*len(volunteers))
 	visitedNodes := []*graph.Person{}
 	errCh := make(chan error)
 
+	throttle := make(chan int, maxConcurrentDbRequests)
+
 	for _, node := range newNodes {
 		for _, volunteer := range volunteers {
-			//go func(node *graph.Person, volunteer *graph.Volunteer) {
-			linkErr := linkNodeToVolunteer(node, volunteer, newNodes)
-			if linkErr != nil {
-				errCh <- linkErr
-			}
-			//}(node, volunteer)
-		}
+			throttle <- 1
 
-		visitedNodeCh <- node
+			go func(node *graph.Person, volunteer *graph.Volunteer, throttle chan int) {
+				linkErr := linkNodeToVolunteer(node, volunteer, newNodes)
+				if linkErr != nil {
+					errCh <- linkErr
+				}
+
+				visitedNodeCh <- node
+
+				<-throttle
+			}(node, volunteer, throttle)
+		}
 	}
 
 	for len(newNodes) > 0 {
@@ -111,7 +117,8 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 		case err := <-errCh:
 			return nil, err
 		}
-		if len(visitedNodes) == len(newNodes) {
+
+		if len(visitedNodes)/len(volunteers) == len(newNodes)/len(volunteers) {
 			break
 		}
 	}
@@ -163,10 +170,37 @@ func connectMutualFriends(node *graph.Person, g graph.Graph, fbSession *facebook
 		return mutualFriendsErr
 	}
 
+	connectedFriends := []*facebook.Person{}
+	connectedFriendsCh := make(chan *facebook.Person, len(mutualFriends))
+	errCh := make(chan error)
+	/*throttle := make(chan int, maxConcurrentDbRequests)*/
+
 	for _, mutualFriend := range mutualFriends {
+		//throttle <- 1
+
+		//go func(mutualFriend *facebook.Person, throttle chan int) {
+		//log.Println("new op", len(throttle))
 		addFriendshipErr := node.AddFriendshipWith(mutualFriend.UserId)
 		if addFriendshipErr != nil {
-			return addFriendshipErr
+			errCh <- addFriendshipErr
+		}
+
+		connectedFriendsCh <- mutualFriend
+
+		//<-throttle
+		//}(mutualFriend, throttle)
+	}
+
+	for len(mutualFriends) > 0 {
+		select {
+		case connectedFriend := <-connectedFriendsCh:
+			connectedFriends = append(connectedFriends, connectedFriend)
+		case err := <-errCh:
+			return err
+		}
+
+		if len(connectedFriends) == len(mutualFriends) {
+			break
 		}
 	}
 

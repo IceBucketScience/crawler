@@ -1,6 +1,7 @@
 package index
 
 import (
+	"log"
 	"strings"
 	"time"
 
@@ -20,18 +21,24 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 	session := facebook.CreateSession(volunteer.AccessToken)
 
 	indexedPeople := []*graph.Person{}
-	indexedPeopleCh := make(chan *graph.Person)
+	indexedPeopleCh := make(chan *graph.Person, len(g))
 	errCh := make(chan error)
 
+	throttle := make(chan int, maxConcurrentDbRequests)
+
 	for _, person := range g {
-		go func(person *graph.Person) {
+		throttle <- 1
+
+		go func(person *graph.Person, throttle chan int) {
 			postIndexingErr := indexPostsOf(person, session)
 			if postIndexingErr != nil {
 				errCh <- postIndexingErr
 			}
 
 			indexedPeopleCh <- person
-		}(person)
+
+			<-throttle
+		}(person, throttle)
 	}
 
 	for len(g) > 0 {
