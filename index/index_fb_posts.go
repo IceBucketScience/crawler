@@ -110,7 +110,7 @@ func isIceBucketChallengePost(postData *facebook.Post) bool {
 		"ICE BUCKET CHALLENGE",
 		"ICEBUCKETCHALLENGE",
 		"NOMINAT",
-		"CHALLENGE",
+		"CHALLENG",
 		"24 HOURS",
 	}
 
