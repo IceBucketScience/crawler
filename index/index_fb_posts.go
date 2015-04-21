@@ -60,20 +60,20 @@ func indexPostsOf(person *graph.Person, session *facebook.Session) error {
 	}
 
 	indexedPosts := []*facebook.Post{}
-	indexedPostsCh := make(chan *facebook.Post)
+	indexedPostsCh := make(chan *facebook.Post, len(rawPosts))
 	errCh := make(chan error)
 
 	for _, post := range rawPosts {
-		go func(post *facebook.Post) {
-			if isIceBucketChallengePost(post) {
-				_, err := getExistingOrCreateNewPost(post)
-				if err != nil {
-					errCh <- err
-				}
+		//go func(post *facebook.Post) {
+		if isIceBucketChallengePost(post) {
+			_, err := getExistingOrCreateNewPost(post)
+			if err != nil {
+				errCh <- err
 			}
+		}
 
-			indexedPostsCh <- post
-		}(post)
+		indexedPostsCh <- post
+		//}(post)
 	}
 
 	for len(rawPosts) > 0 {
@@ -156,18 +156,18 @@ func addPosterToPost(posterId string, post *graph.Post) error {
 
 func addTaggedToPost(peopleToTag []*facebook.Person, post *graph.Post) error {
 	taggedPeople := []*graph.Person{}
-	taggedPeopleCh := make(chan *graph.Person)
+	taggedPeopleCh := make(chan *graph.Person, len(peopleToTag))
 	errCh := make(chan error)
 
 	for _, person := range peopleToTag {
-		go func(person *facebook.Person) {
-			tagged, err := addTaggedPersonToPost(person.UserId, post)
-			if err != nil {
-				errCh <- err
-			}
+		//go func(person *facebook.Person) {
+		tagged, err := addTaggedPersonToPost(person.UserId, post)
+		if err != nil {
+			errCh <- err
+		}
 
-			taggedPeopleCh <- tagged
-		}(person)
+		taggedPeopleCh <- tagged
+		//}(person)
 	}
 
 	for len(peopleToTag) > 0 {

@@ -49,7 +49,6 @@ func createNodesForFriends(friends []*facebook.Person) (graph.Graph, error) {
 	for len(friends) > 0 {
 		select {
 		case node := <-createdNodeCh:
-			log.Println(node.Name)
 			createdNodes[node.FbId] = node
 		case err := <-errCh:
 			return nil, err
@@ -88,21 +87,21 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 		return nil, getVolunteersErr
 	}
 
-	visitedNodeCh := make(chan *graph.Person)
+	visitedNodeCh := make(chan *graph.Person, len(newNodes))
 	visitedNodes := []*graph.Person{}
 	errCh := make(chan error)
 
 	for _, node := range newNodes {
 		for _, volunteer := range volunteers {
-			go func(node *graph.Person, volunteer *graph.Volunteer) {
-				linkErr := linkNodeToVolunteer(node, volunteer, newNodes)
-				if linkErr != nil {
-					errCh <- linkErr
-				}
-
-				visitedNodeCh <- node
-			}(node, volunteer)
+			//go func(node *graph.Person, volunteer *graph.Volunteer) {
+			linkErr := linkNodeToVolunteer(node, volunteer, newNodes)
+			if linkErr != nil {
+				errCh <- linkErr
+			}
+			//}(node, volunteer)
 		}
+
+		visitedNodeCh <- node
 	}
 
 	for len(newNodes) > 0 {
