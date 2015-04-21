@@ -1,7 +1,6 @@
 package index
 
 import (
-	"log"
 	"strings"
 	"time"
 
