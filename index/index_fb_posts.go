@@ -1,6 +1,7 @@
 package index
 
 import (
+	"log"
 	"strings"
 	"time"
 
@@ -45,7 +46,8 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 		case indexedPerson := <-indexedPeopleCh:
 			indexedPeople = append(indexedPeople, indexedPerson)
 		case err := <-errCh:
-			return err
+			//return err
+			log.Println(err)
 		}
 
 		if len(indexedPeople) == len(g) {
