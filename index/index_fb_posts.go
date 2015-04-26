@@ -45,6 +45,7 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 		select {
 		case indexedPerson := <-indexedPeopleCh:
 			indexedPeople = append(indexedPeople, indexedPerson)
+			log.Println("Friends' posts indexed:", len(indexedPeople))
 		case err := <-errCh:
 			//return err
 			log.Println("[INDEXING ERROR] " + err.Error())
