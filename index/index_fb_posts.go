@@ -56,11 +56,11 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 			indexedMap := map[string]bool{}
 
 			for _, indexedPerson := range indexedPeople {
-				indexedMap[person.FbId] = true
+				indexedMap[indexedPerson.FbId] = true
 			}
 
 			for _, person := range g {
-				if indexedMap[person.FbId] == nil {
+				if _, exists := indexedMap[person.FbId]; exists {
 					log.Println(person.FbId, "'s posts not indexed!")
 				}
 			}
