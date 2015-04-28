@@ -92,7 +92,7 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 	errCh := make(chan error)
 
 	throttle := make(chan int, maxConcurrentDbRequests)
-	log.Println("num newnodes", len(newNodes))
+
 	for _, node := range newNodes {
 		for _, volunteer := range volunteers {
 			throttle <- 1
@@ -175,22 +175,21 @@ func connectMutualFriends(node *graph.Person, g graph.Graph, fbSession *facebook
 	connectedFriends := []*facebook.Person{}
 	connectedFriendsCh := make(chan *facebook.Person, len(mutualFriends))
 	errCh := make(chan error)
-	/*throttle := make(chan int, maxConcurrentDbRequests)*/
+	throttle := make(chan int, maxConcurrentDbRequests)
 
 	for _, mutualFriend := range mutualFriends {
-		//throttle <- 1
+		throttle <- 1
 
-		//go func(mutualFriend *facebook.Person, throttle chan int) {
-		//log.Println("new op", len(throttle))
-		addFriendshipErr := node.AddFriendshipWith(mutualFriend.UserId)
-		if addFriendshipErr != nil {
-			errCh <- addFriendshipErr
-		}
+		go func(mutualFriend *facebook.Person, throttle chan int) {
+			addFriendshipErr := node.AddFriendshipWith(mutualFriend.UserId)
+			if addFriendshipErr != nil {
+				errCh <- addFriendshipErr
+			}
 
-		connectedFriendsCh <- mutualFriend
+			connectedFriendsCh <- mutualFriend
 
-		//<-throttle
-		//}(mutualFriend, throttle)
+			<-throttle
+		}(mutualFriend, throttle)
 	}
 
 	for len(mutualFriends) > 0 {
@@ -200,6 +199,8 @@ func connectMutualFriends(node *graph.Person, g graph.Graph, fbSession *facebook
 		case err := <-errCh:
 			return err
 		}
+
+		log.Println("mutual friends indexed for", node.FbId, " ", len(connectedFriends), "out of", len(mutualFriends))
 
 		if len(connectedFriends) == len(mutualFriends) {
 			break
