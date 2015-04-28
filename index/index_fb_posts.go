@@ -50,6 +50,8 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 			log.Println("[INDEXING ERROR] " + err.Error())
 		}
 
+		log.Println("indexed so far:", len(indexedPeople), "out of", len(g))
+
 		if len(indexedPeople) == len(g) {
 			log.Println("done indexing posts!")
 			break
