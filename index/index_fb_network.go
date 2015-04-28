@@ -87,6 +87,8 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 		return nil, getVolunteersErr
 	}
 
+	log.Println("volunteers retrieved")
+
 	visitedNodeCh := make(chan *graph.Person, len(newNodes)*len(volunteers))
 	visitedNodes := []*graph.Person{}
 	errCh := make(chan error)
@@ -120,7 +122,7 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 
 		log.Println("currently done linking", len(visitedNodes), "out of", len(newNodes)*len(volunteers), "; stats:", len(newNodes), len(volunteers))
 
-		if len(visitedNodes)/len(volunteers) == len(newNodes)/len(volunteers) {
+		if len(visitedNodes)/len(volunteers) == len(newNodes) {
 			break
 		}
 	}
