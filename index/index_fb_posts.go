@@ -45,27 +45,11 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 		select {
 		case indexedPerson := <-indexedPeopleCh:
 			indexedPeople = append(indexedPeople, indexedPerson)
-			log.Println("Friends' posts indexed:", len(indexedPeople))
 		case err := <-errCh:
 			//return err
+			indexedPeople = append(indexedPeople, indexedPerson)
 			log.Println("[INDEXING ERROR] " + err.Error())
 		}
-
-		//ERROR CHECKING CODE
-		if len(indexedPeople) == len(g)-1 {
-			indexedMap := map[string]bool{}
-
-			for _, indexedPerson := range indexedPeople {
-				indexedMap[indexedPerson.FbId] = true
-			}
-
-			for _, person := range g {
-				if _, exists := indexedMap[person.FbId]; !exists {
-					log.Println(person.FbId, "'s posts not indexed!")
-				}
-			}
-		}
-		//END ERROR CHECKING CODE
 
 		if len(indexedPeople) == len(g) {
 			break
