@@ -47,11 +47,11 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 			indexedPeople = append(indexedPeople, indexedPerson)
 		case err := <-errCh:
 			//return err
-			indexedPeople = append(indexedPeople, indexedPerson)
 			log.Println("[INDEXING ERROR] " + err.Error())
 		}
 
 		if len(indexedPeople) == len(g) {
+			log.Println("done indexing posts!")
 			break
 		}
 	}
