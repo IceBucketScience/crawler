@@ -52,8 +52,23 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 
 		log.Println("indexed so far:", len(indexedPeople), "out of", len(g))
 
+		//ERROR CHECKING CODE
+		if len(indexedPeople) == len(g)-1 {
+			indexedMap := map[string]bool{}
+
+			for _, indexedPerson := range indexedPeople {
+				indexedMap[indexedPerson.FbId] = true
+			}
+
+			for _, person := range g {
+				if _, exists := indexedMap[person.FbId]; !exists {
+					log.Println(person.FbId, "'s posts not indexed!")
+				}
+			}
+		}
+		//END ERROR CHECKING CODE
+
 		if len(indexedPeople) == len(g) {
-			log.Println("done indexing posts!")
 			break
 		}
 	}
