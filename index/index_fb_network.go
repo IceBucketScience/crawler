@@ -118,6 +118,8 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 			return nil, err
 		}
 
+		log.Println("currently done linking", len(visitedNodes), "out of", len(newNodes)*len(volunteers), "; stats:", len(newNodes), len(volunteers))
+
 		if len(visitedNodes)/len(volunteers) == len(newNodes)/len(volunteers) {
 			break
 		}
