@@ -87,14 +87,12 @@ func linkNewNodesToNetwork(newNodes graph.Graph) (graph.Graph, error) {
 		return nil, getVolunteersErr
 	}
 
-	log.Println("volunteers retrieved")
-
 	visitedNodeCh := make(chan *graph.Person, len(newNodes)*len(volunteers))
 	visitedNodes := []*graph.Person{}
 	errCh := make(chan error)
 
 	throttle := make(chan int, maxConcurrentDbRequests)
-
+	log.Println("num newnodes", len(newNodes))
 	for _, node := range newNodes {
 		for _, volunteer := range volunteers {
 			throttle <- 1
