@@ -154,7 +154,6 @@ func linkNodesToNetwork(newPeople graph.Graph, totalGraph graph.Graph) (*graph.R
 			go func(friend *graph.Person, volunteer *graph.Volunteer) {
 				linkErr := linkFriendToVolunteer(friend, volunteer, totalGraph, linkedMap, newFriendships, newLinks)
 				if linkErr != nil {
-					log.Println("ERR", friend.FbId, volunteer.Name)
 					errCh <- linkErr
 				}
 
@@ -168,7 +167,8 @@ func linkNodesToNetwork(newPeople graph.Graph, totalGraph graph.Graph) (*graph.R
 		case friend := <-visitedFriendCh:
 			visitedFriends = append(visitedFriends, friend)
 		case err := <-errCh:
-			return nil, nil, err
+			//return nil, nil, err
+			log.Println("[INDEXING ERROR]", err)
 		}
 
 		if len(visitedFriends)/len(volunteers) == len(newPeople) {
