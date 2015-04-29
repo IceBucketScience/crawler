@@ -154,6 +154,7 @@ func linkNodesToNetwork(newPeople graph.Graph, totalGraph graph.Graph) (*graph.R
 			go func(friend *graph.Person, volunteer *graph.Volunteer) {
 				linkErr := linkFriendToVolunteer(friend, volunteer, totalGraph, linkedMap, newFriendships, newLinks)
 				if linkErr != nil {
+					log.Println("ERR", friend.FbId, volunteer.Name)
 					errCh <- linkErr
 				}
 
