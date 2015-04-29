@@ -240,7 +240,7 @@ func linkFriendToVolunteer(
 	newFriendships *graph.RelationshipMap,
 	newLinks *graph.RelationshipMap) error {
 	if !linkedMap.RelationshipExists(friend.FbId, volunteer.FbId) {
-		fbSession := facebook.CreateSession(volunteer.AccessToken)
+		/*fbSession := facebook.CreateSession(volunteer.AccessToken)
 
 		friendshipAddedErr := addFriendshipIfFriends(friend, volunteer, fbSession, newFriendships)
 		if friendshipAddedErr != nil {
@@ -250,7 +250,7 @@ func linkFriendToVolunteer(
 		mutualFriendsErr := connectMutualFriends(friend, fbSession, newFriendships)
 		if mutualFriendsErr != nil {
 			return mutualFriendsErr
-		}
+		}*/
 
 		newLinks.AddRelationship(friend.FbId, volunteer.FbId)
 	}
