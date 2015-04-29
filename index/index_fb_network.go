@@ -26,7 +26,7 @@ func indexFacebookNetwork(session *facebook.Session) error {
 
 	log.Println("NODES CREATED FOR FRIENDS", len(newGraph))
 
-	newFriendships, newLinks, linkFriendsErr := linkNodesToNetwork(newGraph, currNetwork)
+	_, newLinks, linkFriendsErr := linkNodesToNetwork(newGraph, currNetwork)
 	if linkFriendsErr != nil {
 		return linkFriendsErr
 	}
