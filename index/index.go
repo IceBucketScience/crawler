@@ -10,7 +10,7 @@ import (
 
 var maxConcurrentFbRequests int
 
-func InitIndexer(maxConcDbRequests int) {
+func InitIndexer(maxConcFbRequests int) {
 	maxConcurrentFbRequests = maxConcFbRequests
 }
 
