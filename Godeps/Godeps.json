@@ -61,19 +61,19 @@
 		},
 		{
 			"ImportPath": "shared/config",
-			"Rev": "f662367b82febb0cde0fd0a5389ae39a32e05f28"
+			"Rev": "fd8bbc311a10d75d663b4632cdc54e6458261cb8"
 		},
 		{
 			"ImportPath": "shared/facebook",
-			"Rev": "f662367b82febb0cde0fd0a5389ae39a32e05f28"
+			"Rev": "fd8bbc311a10d75d663b4632cdc54e6458261cb8"
 		},
 		{
 			"ImportPath": "shared/graph",
-			"Rev": "f662367b82febb0cde0fd0a5389ae39a32e05f28"
+			"Rev": "fd8bbc311a10d75d663b4632cdc54e6458261cb8"
 		},
 		{
 			"ImportPath": "shared/msg_queue",
-			"Rev": "f662367b82febb0cde0fd0a5389ae39a32e05f28"
+			"Rev": "fd8bbc311a10d75d663b4632cdc54e6458261cb8"
 		}
 	]
 }

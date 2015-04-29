@@ -17,6 +17,78 @@ type Person struct {
 	TimeCompleted                  int
 }
 
+func CreatePersonNode(userId string, name string) *Person {
+	return &Person{FbId: userId, Name: name}
+}
+
+func GetNetwork() (Graph, error) {
+	res := []struct {
+		N             neoism.Node
+		FbId          string `json:"fbId"`
+		Name          string `json:"name"`
+		TimeNominated int    `json:"timeNominated"`
+		TimeCompleted int    `json:"timeCompleted"`
+	}{}
+
+	err := db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (p:Person) RETURN p, 
+            	p.fbId AS fbId, 
+            	p.name AS name, 
+            	p.timeNominated AS timeNominated, 
+            	p.timeCompleted AS timeCompleted
+        `,
+		Result: &res,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	network := Graph{}
+
+	for _, personData := range res {
+		personNode := personData.N
+		personNode.Db = db
+
+		person := &Person{
+			node:          &personNode,
+			FbId:          personData.FbId,
+			Name:          personData.Name,
+			TimeNominated: personData.TimeNominated,
+			TimeCompleted: personData.TimeCompleted,
+		}
+
+		network[person.FbId] = person
+	}
+
+	return network, nil
+}
+
+func GetLinked() (*RelationshipMap, error) {
+	res := []struct {
+		PersonId    string `json:"personId"`
+		VolunteerId string `json:"volunteerId"`
+	}{}
+
+	err := db.Cypher(&neoism.CypherQuery{
+		Statement: `
+            MATCH (p:Person)-[:LINKED]->(v:Volunteer) RETURN p.fbId AS personId, v.fbId AS volunteerId
+        `,
+		Result: &res,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	linkedMap := CreateRelationshipMap("LINKED")
+
+	for _, link := range res {
+		linkedMap.AddMutualRelationship(link.PersonId, link.VolunteerId)
+	}
+
+	return linkedMap, nil
+}
+
 func CreatePerson(userId string, name string) (*Person, error) {
 	node, err := db.CreateNode(neoism.Props{"fbId": userId, "name": name})
 	if err != nil {
@@ -28,6 +100,27 @@ func CreatePerson(userId string, name string) (*Person, error) {
 	node.AddLabel("Person")
 
 	return &Person{node: node, FbId: userId, Name: name}, nil
+}
+
+func (person *Person) GetQuery() *neoism.CypherQuery {
+	return &neoism.CypherQuery{
+		Statement: `
+			MERGE (p:Person {fbId: {fbId}, name: {name}}) RETURN p
+		`,
+		Parameters: neoism.Props{"fbId": person.FbId, "name": person.Name},
+	}
+}
+
+func GetCreateRelationshipQuery(relName string, p1Id string, p2Id string) *neoism.CypherQuery {
+	return &neoism.CypherQuery{
+		Statement: `
+            MATCH (p1:Person), (p2:Person)
+            WHERE p1.fbId = {p1Id} AND p2.fbId = {p2Id}
+            MERGE (p1)-[f:` + relName + `]-(p2)
+            RETURN f
+        `,
+		Parameters: neoism.Props{"p1Id": p1Id, "p2Id": p2Id},
+	}
 }
 
 func (person *Person) addRelationshipTo(fbId string, relName string) error {
@@ -193,9 +286,9 @@ func GetFriendshipsInNetwork(personId string) ([]*Friendship, error) {
 
 	err := db.Cypher(&neoism.CypherQuery{
 		Statement: `
-            MATCH (v:Person {fbId: {fbId}})-[f:FRIENDS]->(friend:Person) 
+            MATCH (v:Person {fbId: {fbId}})-[f:FRIENDS]-(friend:Person) 
                 RETURN v.fbId AS sourceId, f, friend.fbId AS targetId
-            UNION MATCH (v:Person {fbId: {fbId}})-[:FRIENDS]-(p:Person)-[f:FRIENDS]->(friend:Person) 
+            UNION MATCH (v:Person {fbId: {fbId}})-[:FRIENDS]-(p:Person)-[f:FRIENDS]-(friend:Person) 
                 RETURN p.fbId AS sourceId, f, friend.fbId AS targetId
         `,
 		Parameters: neoism.Props{"fbId": personId},

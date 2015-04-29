@@ -189,8 +189,8 @@ func GetPostsInOrder(userId string) ([]*Post, error) {
 		Statement: `
             MATCH (:Person {fbId: {fbId}})-[:POSTED]->(posts:Post) RETURN posts, posts.timeCreated
             UNION MATCH (:Person {fbId: {fbId}})<-[:TAGGED]-(posts:Post) RETURN posts, posts.timeCreated
-            UNION MATCH (:Person {fbId: {fbId}})-[:FRIENDS]->(friend:Person)-[:POSTED]->(posts:Post) RETURN posts, posts.timeCreated
-            UNION MATCH (:Person {fbId: {fbId}})-[:FRIENDS]->(friend:Person)<-[:TAGGED]-(posts:Post) RETURN posts, posts.timeCreated
+            UNION MATCH (:Person {fbId: {fbId}})-[:FRIENDS]-(friend:Person)-[:POSTED]->(posts:Post) RETURN posts, posts.timeCreated
+            UNION MATCH (:Person {fbId: {fbId}})-[:FRIENDS]-(friend:Person)<-[:TAGGED]-(posts:Post) RETURN posts, posts.timeCreated
         `,
 		Parameters: neoism.Props{"fbId": userId},
 		Result:     &res,
