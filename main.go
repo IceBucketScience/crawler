@@ -23,7 +23,7 @@ func main() {
 	facebook.InitFbClient(configuration.FbAppId, configuration.FbAppSecret)
 	graph.InitGraph(configuration.DbUrl, configuration.MaxConcurrentDbRequests)
 
-	index.InitIndexer(configuration.MaxConcurrentDbRequests)
+	index.InitIndexer(configuration.MaxConcurrentFbRequests)
 
 	startIndexRequestHandler(server, &configuration)
 

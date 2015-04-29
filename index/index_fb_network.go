@@ -149,8 +149,12 @@ func linkNodesToNetwork(newPeople graph.Graph, totalGraph graph.Graph) (*graph.R
 	visitedFriends := []*graph.Person{}
 	errCh := make(chan error)
 
+	throttle := make(chan bool, maxConcurrentFbRequests)
+
 	for _, friend := range newPeople {
 		for _, volunteer := range volunteers {
+			throttle <- true
+
 			go func(friend *graph.Person, volunteer *graph.Volunteer) {
 				linkErr := linkFriendToVolunteer(friend, volunteer, totalGraph, linkedMap, newFriendships, newLinks)
 				if linkErr != nil {
@@ -158,6 +162,8 @@ func linkNodesToNetwork(newPeople graph.Graph, totalGraph graph.Graph) (*graph.R
 				}
 
 				visitedFriendCh <- friend
+
+				<-throttle
 			}(friend, volunteer)
 		}
 	}
