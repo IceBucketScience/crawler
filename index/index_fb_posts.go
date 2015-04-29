@@ -24,7 +24,7 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 	indexedPeopleCh := make(chan *graph.Person, len(g))
 	errCh := make(chan error)
 
-	throttle := make(chan int, maxConcurrentDbRequests)
+	throttle := make(chan int, 75)
 
 	for _, person := range g {
 		throttle <- 1
