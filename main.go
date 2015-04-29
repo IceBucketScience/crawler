@@ -21,7 +21,7 @@ func main() {
 	server := mux.NewRouter()
 
 	facebook.InitFbClient(configuration.FbAppId, configuration.FbAppSecret)
-	graph.InitGraph(configuration.DbUrl)
+	graph.InitGraph(configuration.DbUrl, configuration.MaxConcurrentDbRequests)
 
 	index.InitIndexer(configuration.MaxConcurrentDbRequests)
 
