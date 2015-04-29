@@ -142,7 +142,7 @@ func linkNodesToNetwork(newPeople graph.Graph, totalGraph graph.Graph) (*graph.R
 		return nil, nil, getLinkedMapErr
 	}
 
-	newLinks := graph.CreateRelationshipMap("TEST")
+	newLinks := graph.CreateRelationshipMap("LINKED")
 	newFriendships := graph.CreateRelationshipMap("FRIENDS")
 
 	visitedFriendCh := make(chan *graph.Person, len(newPeople)*len(volunteers))
