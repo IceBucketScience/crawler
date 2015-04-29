@@ -38,10 +38,10 @@ func indexFacebookNetwork(session *facebook.Session) error {
 		return newGraphCommitErr
 	}
 
-	newFriendshipsErr := newFriendships.Commit()
+	/*newFriendshipsErr := newFriendships.Commit()
 	if newFriendshipsErr != nil {
 		return newFriendshipsErr
-	}
+	}*/
 
 	newLinksErr := newLinks.Commit()
 	if newLinksErr != nil {
