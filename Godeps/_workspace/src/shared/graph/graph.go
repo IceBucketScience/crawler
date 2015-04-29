@@ -70,7 +70,15 @@ func CommitTransaction(qs []*neoism.CypherQuery) error {
 		return txErr
 	}
 
-	return tx.Commit()
+	log.Println("tx errs", tx.Errors)
+
+	//return tx.Commit()
+
+	if commitErr := tx.Commit(); commitErr != nil {
+		log.Println("commit errs", tx.Errors)
+	}
+
+	return commitErr
 }
 
 type Graph map[string]*Person
