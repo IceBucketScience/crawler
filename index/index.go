@@ -50,19 +50,19 @@ func IndexVolunteer(userId string, accessToken string) (*graph.Volunteer, error)
 
 	log.Println("[NETWORK LOADED]", name)
 
-	postIndexingErr := indexFacebookPosts(volunteer)
-	if postIndexingErr != nil {
-		return volunteer, postIndexingErr
-	}
-
-	log.Println("[POSTS INDEXED]", name)
-
 	commitRelationshipsErr := commitFacebookRelationships(newFriendships, newLinks)
 	if commitRelationshipsErr != nil {
 		return volunteer, commitRelationshipsErr
 	}
 
 	log.Println("[NETWORK INDEXED]", name)
+
+	postIndexingErr := indexFacebookPosts(volunteer)
+	if postIndexingErr != nil {
+		return volunteer, postIndexingErr
+	}
+
+	log.Println("[POSTS INDEXED]", name)
 
 	iceBucketMappingErr := mapIceBucketChallenge(volunteer)
 	if iceBucketMappingErr != nil {
