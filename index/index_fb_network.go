@@ -7,17 +7,17 @@ import (
 	"shared/graph"
 )
 
-func indexFacebookNetwork(session *facebook.Session) error {
+func loadFacebookNetwork(session *facebook.Session) (graph.Graph, *graph.RelationshipMap, *graph.RelationshipMap, error) {
 	currNetwork, getNetworkErr := graph.GetNetwork()
 	if getNetworkErr != nil {
-		return getNetworkErr
+		return nil, nil, nil, getNetworkErr
 	}
 
 	log.Println("CURRENT NETWORK RETRIEVED")
 
 	friends, getFriendsErr := session.GetFriends()
 	if getFriendsErr != nil {
-		return getFriendsErr
+		return nil, nil, nil, getFriendsErr
 	}
 
 	log.Println("FRIENDS RETRIEVED")
@@ -28,16 +28,24 @@ func indexFacebookNetwork(session *facebook.Session) error {
 
 	newFriendships, newLinks, linkFriendsErr := linkNodesToNetwork(newGraph, currNetwork)
 	if linkFriendsErr != nil {
-		return linkFriendsErr
+		return nil, nil, nil, linkFriendsErr
 	}
 
 	log.Println("NEW FRIENDS LINKED")
 
+	return newGraph, newFriendships, newLinks, nil
+}
+
+func commitFacebookNetwork(newGraph graph.Graph) error {
 	newGraphCommitErr := newGraph.Commit()
 	if newGraphCommitErr != nil {
 		return newGraphCommitErr
 	}
 
+	return nil
+}
+
+func commitFacebookRelationships(newFriendships *graph.RelationshipMap, newLinks *graph.RelationshipMap) error {
 	newFriendshipsErr := newFriendships.Commit()
 	if newFriendshipsErr != nil {
 		return newFriendshipsErr
@@ -47,20 +55,6 @@ func indexFacebookNetwork(session *facebook.Session) error {
 	if newLinksErr != nil {
 		return newLinksErr
 	}
-
-	/*log.Println("FRIENDS RETRIEVED")
-
-	friendNodes, createFriendNodesErr := createNodesForFriends(friends)
-	if createFriendNodesErr != nil {
-		return createFriendNodesErr
-	}
-
-	log.Println("FRIENDS SAVED")
-
-	friendNodes, linkNodesToNetworkErr := linkNewNodesToNetwork(friendNodes)
-	if linkNodesToNetworkErr != nil {
-		return linkNodesToNetworkErr
-	}*/
 
 	return nil
 }

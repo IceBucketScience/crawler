@@ -122,9 +122,9 @@ func indexPostsOf(person *graph.Person, session *facebook.Session) error {
 }
 
 func isIceBucketChallengePost(postData *facebook.Post) bool {
-	if strings.Contains(postData.Message, "ALS") {
+	/*if strings.Contains(postData.Message, "ALS") {
 		return true
-	}
+	}*/
 
 	normalizedMessage := strings.ToUpper(postData.Message)
 	keywords := []string{
