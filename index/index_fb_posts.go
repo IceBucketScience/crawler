@@ -41,19 +41,22 @@ func indexFacebookPosts(volunteer *graph.Volunteer) error {
 		}(person, throttle)
 	}
 
+	errCount := 0
+
 	for len(g) > 0 {
 		select {
 		case indexedPerson := <-indexedPeopleCh:
 			indexedPeople = append(indexedPeople, indexedPerson)
 		case err := <-errCh:
 			//return err
+			errCount++
 			log.Println("[INDEXING ERROR] " + err.Error())
 		}
 
 		log.Println("indexed so far:", len(indexedPeople), "out of", len(g))
 
 		//ERROR CHECKING CODE
-		if len(indexedPeople) == len(g)-1 {
+		if len(indexedPeople) == len(g)-errCount {
 			indexedMap := map[string]bool{}
 
 			for _, indexedPerson := range indexedPeople {
