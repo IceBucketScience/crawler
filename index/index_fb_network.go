@@ -36,10 +36,21 @@ func loadFacebookNetwork(session *facebook.Session) (graph.Graph, *graph.Relatio
 	return newGraph, newFriendships, newLinks, nil
 }
 
-func commitFacebookNetwork(newGraph graph.Graph) error {
+func commitFacebookNetwork(volunteer *graph.Volunteer, newGraph graph.Graph) error {
+	volunteerFriends := graph.CreateRelationshipMap("FRIENDS")
+
+	for _, friend := range newGraph {
+		volunteerFriends.AddRelationship(volunteer.FbId, friend.FbId)
+	}
+
 	newGraphCommitErr := newGraph.Commit()
 	if newGraphCommitErr != nil {
 		return newGraphCommitErr
+	}
+
+	commitVolunteerFriendsErr := volunteerFriends.Commit()
+	if commitVolunteerFriendsErr != nil {
+		return commitVolunteerFriendsErr
 	}
 
 	return nil

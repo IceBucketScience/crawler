@@ -43,7 +43,7 @@ func IndexVolunteer(userId string, accessToken string) (*graph.Volunteer, error)
 		return volunteer, facebookIndexingErr
 	}
 
-	commitFriendsErr := commitFacebookNetwork(newGraph)
+	commitFriendsErr := commitFacebookNetwork(volunteer, newGraph)
 	if commitFriendsErr != nil {
 		return volunteer, commitFriendsErr
 	}
